@@ -10,7 +10,7 @@ function Footer() {
    {/* left-section */}
     <div className='' >
         <img className='mb-5 w-40' src={assets.logo} alt="" />
-        <p className='w-full md:w-2/3 text-gray-600 leading-6'>Lorem ipsum, dolor sit amet consectetur atext-xldipisicing elit. Minima, voluptatem. Saepe facilis corporis est! Voluptatem ex, veritatis quod eius at quas rerum fuga labore dicta iste ducimus voluptas! Necessitatibus quis eum vitae saepe. Aliquam, blanditiis.</p>
+        <p className='w-full md:w-2/3 text-gray-600 leading-6'>We make it easy to find the right doctor, book appointments online, and get basic health guidance — all in one simple and secure platform.</p>
     </div>
     {/* center section */}
    <div>
@@ -37,7 +37,7 @@ function Footer() {
           
     
         {/* copywright */}
-        <div className= ' flex items-center justify-center mb-2'><hr /><p className='  text-gray-600'>Copyright 2024 @Ratnesh.Dev - All Right Reserved.</p>
+        <div className= ' flex items-center justify-center mb-2'><hr /><p className='  text-gray-600'>Copyright 2026 @Ratnesh.Dev - All Right Reserved.</p>
         </div>
    </div>
   )

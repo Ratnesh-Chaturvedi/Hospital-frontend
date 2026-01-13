@@ -1,13 +1,15 @@
 import React, { useContext, useState, useEffect } from "react";
-import { useParams } from "react-router";
-import { AppContext } from "./Context/Context";
-import { assets } from "./assets/assets_frontend/assets";
-import RelatedDoctor from "./Components/RelatedDoctor";
+import { useNavigate, useParams } from "react-router";
+import { AppContext } from "./Context/Context.jsx";
+import { assets } from "./assets/assets_frontend/assets.js";
+import RelatedDoctor from "./Components/RelatedDoctor.jsx";
+import { toast } from "react-toastify";
+import axios from "axios";
 // import { data } from 'autoprefixer'
 const daysofweek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 function Appointment() {
   const { docId } = useParams();
-  const { doctors, currencySymbol } = useContext(AppContext);
+  const { doctors, currencySymbol,backendUrl,usertoken,getAllDoctors } = useContext(AppContext);
   const [docInfo, setDocInfo] = useState(null);
   const [docSlot, setDocSlot] = useState([]);
   const [Slotindex, setSlotindex] = useState(0);
@@ -17,6 +19,9 @@ function Appointment() {
     const docInfo = doctors.find((doc) => doc._id === docId);
     setDocInfo(docInfo);
   };
+
+  const navigate=useNavigate();
+
 
   const getAvailableSlot = async () => {
     setDocSlot([]);
@@ -48,12 +53,19 @@ function Appointment() {
           minute: "2-digit",
         });
 
-        // add slots to array
-        timeSlot.push({
-          datetime: new Date(currentDate),
-          time: formattedtime,
-        });
-
+        const date=currentDate.getDate();
+        const month=currentDate.getMonth()+1;
+        const year=currentDate.getFullYear();
+        const slotDate=date+"_"+month+"_"+year;
+        const slotTime=formattedtime
+        const isSlotAvailable=docInfo.slots_booked[slotDate] && docInfo.slots_booked[slotDate].includes(slotTime) ?false:true;
+        if(isSlotAvailable){ 
+          // add slots to array
+          timeSlot.push({
+            datetime: new Date(currentDate),
+            time: formattedtime,
+          });
+        }
         // incremant time by 30 min
         currentDate.setMinutes(currentDate.getMinutes() + 30);
       }
@@ -73,6 +85,48 @@ function Appointment() {
   useEffect(() => {
     // console.log(docSlot);
   }, [docSlot]);
+
+
+  // book appointments
+  const bookAppointment=async()=>{
+    if(!usertoken){
+      toast.warn("Login to Book appointments")
+     return  navigate('/login')
+    }
+
+    try {
+      const date=docSlot[Slotindex][0].datetime
+      const slotTime=Slottime;
+      // console.log(slotTime)
+     const day=date.getDate();
+     const month=date.getMonth()+1;
+     const year=date.getFullYear();
+     const slotDate=day+"_"+month+"_"+year
+      // console.log(slotDate)
+    
+      const {data}=await axios.post(backendUrl+'/api/user/book-appointment',{docId,slotDate,slotTime},{headers:{usertoken}})
+    
+      if(!data){
+         toast.error("Data is unvailable")
+      }
+      
+      if(data.success){
+        toast.success("Appointment booked successfully")
+        getAllDoctors();
+        navigate('/my-appointments')
+      }
+      else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      console.log(error)
+      toast.error(error.message)
+    }
+  }
+
+
+
+
 
   return (
     docInfo && (
@@ -112,7 +166,7 @@ function Appointment() {
             </div>
             <p className="text-gray-900 font-medium mt-4 ">
               Appointment fee:{currencySymbol}
-              <span className="text-gray-600">{docInfo.fees}</span>
+              <span className="text-gray-600">{docInfo.fee}</span>
             </p>
             <div></div>
           </div>
@@ -136,7 +190,7 @@ function Appointment() {
               </p>
             ))}
           </div>
-          <button className="rounded-full font-light bg-primary text-white text-sm py-3 px-3 mt-4">Book an Appointment</button>
+          <button onClick={bookAppointment} className="rounded-full font-light bg-primary text-white text-sm py-3 px-3 mt-4">Book an Appointment</button>
         </div>
         {/* Releted Doctors */}
         <RelatedDoctor docId={docId} speciality={docInfo.speciality}/>

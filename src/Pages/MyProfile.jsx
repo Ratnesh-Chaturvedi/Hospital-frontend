@@ -1,24 +1,61 @@
 import React, { useState } from "react";
 import { assets } from "../assets/assets_frontend/assets";
+import { useContext } from "react";
+import { AppContext } from "../Context/Context";
+import { toast } from "react-toastify";
+import axios from "axios";
 
 function MyProfile() {
-  const [userData, setUserData] = useState({
-    name: "ratnesh",
-    img: assets.profile_pic,
-    email: "ratnesh.dev@google.com",
-    phone: "000 111 111 11",
-    address: {
-      line1: "sec 5 Rajnagar",
-      line2: "Ghaziabad UP",
-    },
-    dob: "23-11-2004",
-    gender: "male",
-  });
+
+const {userData,setUserData,backendUrl,usertoken,getUserProfileData}=useContext(AppContext);
+// console.log(userData)
+const [image,setImage]=useState(false)
   const [isEdit, setIsEdit] = useState(false);
 
-  return (
+ const updateUserProfileData=async()=>{
+  try {
+    
+    const formData=new FormData();
+    formData.append('name',userData.name)
+    formData.append('phone',userData.phone)
+    formData.append('address',JSON.stringify(userData.address))
+    formData.append('gender',userData.gender)
+    formData.append('dob',userData.dob)
+
+    image && formData.append("image",image);
+
+    const {data}=await axios.patch(backendUrl+'/api/user/update-profile',formData,{headers:{usertoken}})
+    if(data.success){
+      toast.success("Profile Updated Successfully")
+      await getUserProfileData();
+      setIsEdit(false);
+      setImage(false);
+    }
+    else toast.error(data.message)
+
+  } catch (error) {
+    console.log(error)
+    toast.error(error.message)
+  }
+ }
+
+
+
+
+
+  return userData && (
     <div className=" mt-4 max-w-lg flex flex-col gap-2 text-sm">
-      <img className="w-36 rounded" src={assets.profile_pic} alt="" />
+      {
+        isEdit?<label htmlFor="uploadImg">
+                <div className="inline-block cursor-pointer relative">
+                  <img className="w-32 rounded opacity-75 " src={image?URL.createObjectURL(image):userData.image} alt="" />
+                  <img className="w-12 absolute bottom-10 right-10" src={image?"":assets.upload_icon} />
+                </div>
+                <input onChange={(e)=>setImage(e.target.files[0])} type="file"  id="uploadImg" hidden  />
+        </label>:
+      <img className="w-36 rounded" src={userData.image ? userData.image :assets.profile_pic} alt="" />
+
+      }
       {isEdit ? (
         <input className="bg-gray-50 text-3xl font-medium max-w-60 mt-4"
           type="text"
@@ -59,7 +96,7 @@ function MyProfile() {
                     address: { ...prev.address, line1: e.target.value },
                   }))
                 }
-                value={userData.address.line1}
+                value={userData.address.line1 || ""}
               />
               <br />
               <input className="bg-gray-50"
@@ -70,14 +107,14 @@ function MyProfile() {
                     address: { ...prev.address, line2: e.target.value },
                   }))
                 }
-                value={userData.address.line2}
+                value={userData.address.line2 || ""}
               />
             </p>
           ) : (
-            <p className="text-gray-500">
+            <p className="text-gray-500"  >
               {userData.address.line1}
               <br />
-              {userData.address.line2}
+              {userData.address.line2 }
             </p>
           )}
         </div>
@@ -113,7 +150,7 @@ function MyProfile() {
       </div>
       <div className="mt-6 "> 
         {
-          isEdit? <button className="rounded-full py-2 border border-primary  px-6 font-medium hover:bg-primary hover:text-white" onClick={()=>setIsEdit(false)}>Save Information</button>:
+          isEdit? <button className="rounded-full py-2 border border-primary  px-6 font-medium hover:bg-primary hover:text-white" onClick={updateUserProfileData}>Save Information</button>:
           <button
           className="rounded-full py-2 border border-primary  px-6 font-medium hover:bg-primary hover:text-white"  onClick={()=>setIsEdit(true)}>Edit</button>
         }

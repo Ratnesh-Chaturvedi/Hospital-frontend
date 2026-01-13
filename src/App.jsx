@@ -10,11 +10,17 @@ import MyAppointment from "./Pages/MyAppointment";
 import Appointment from "./Appointment";
 import Navbar from "./Components/Navbar";
 import Footer from "./Components/Footer";
+  import { ToastContainer } from 'react-toastify';
+import PaymentGate from "./Pages/PaymentGate";
+import Chatbot from "./Components/Chatbot";
+
 function App() {
   return (
     <>
       <div className=" mx-4 sm:mx-[10%]">
+        <ToastContainer/>
          <Navbar/>
+        <Chatbot/>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/doctors" element={<Doctors />} />
@@ -25,6 +31,8 @@ function App() {
           <Route path="/my-profile" element={<MyProfile />} />
           <Route path="/my-appointments" element={<MyAppointment />} />
           <Route path="/appointment/:docId" element={<Appointment />} />
+          <Route path='/payment/:appointmentId' element={<PaymentGate/>}/>
+        
         </Routes>
         <Footer/>
       </div>
